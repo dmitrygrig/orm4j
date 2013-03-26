@@ -1,9 +1,7 @@
-orm4j
-=====
+Project  Orm4J
+Description: Object-Relation Mapping Tool for Java.
 
-O/R Mapping framework for Java
-
-To install in maven repository:
+To Install in maven repository:
 mvn install:install-file -Dfile={SQLITE_JAR_PATH_HERE} -DgroupId=sqlite -DartifactId=sqlite-jdbc -Dversion=3.7.2 -Dpackaging=jar
 mvn install:install-file -Dfile={ORM_FILE_JAR_HERE} -DgroupId=orm4j -DartifactId=orm4j -Dversion={version} -Dpackaging=jar
 
