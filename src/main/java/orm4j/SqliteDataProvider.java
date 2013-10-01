@@ -26,7 +26,7 @@ public class SqliteDataProvider implements IDataProvider {
     private Connection transactionConnection = null;
     private String dbPath;
     private INamedQueryManager queryManager;
-    private ILogger qlog = new QueryLogger();
+    private final ILogger qlog = new QueryLogger();
 
     public SqliteDataProvider() {
     }
@@ -48,9 +48,8 @@ public class SqliteDataProvider implements IDataProvider {
             Class.forName("SQLite.JDBCDriver").newInstance();
             conn = DriverManager.getConnection("jdbc:sqlite:/C:/SQLite/ilam.db");
 
-
-            java.lang.reflect.Method m =
-                    conn.getClass().getMethod("getSQLiteDatabase", null);
+            java.lang.reflect.Method m
+                    = conn.getClass().getMethod("getSQLiteDatabase", null);
             db = (SQLite.Database) m.invoke(conn, null);
             ResultSet resultSet = null;
             Statement statement = null;
@@ -70,7 +69,7 @@ public class SqliteDataProvider implements IDataProvider {
     public void setDebug(boolean debug) {
         this.DEBUG = debug;
     }
-    
+
     @Override
     public ILogger getLogger() {
         return this.qlog;

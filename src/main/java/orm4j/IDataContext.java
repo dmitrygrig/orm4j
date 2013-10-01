@@ -7,7 +7,6 @@ package orm4j;
 
 import orm4j.interfaces.Disposable;
 import java.util.List;
-import orm4j.exception.DataContextTransactionException;
 import orm4j.query.NamedQuery;
 import orm4j.query.NamedQueryParameter;
 
@@ -21,19 +20,19 @@ public interface IDataContext extends Disposable {
     public MethodResult add(IEntityObject obj);
     public MethodResult update(IEntityObject obj, NamedQueryParameter... parameters);
     public MethodResult delete(IEntityObject obj, NamedQueryParameter... parameters);
-    public IEntityObject findSingle(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters);
-    public IEntityObject findSingle(Class<? extends EntityObject> c, NamedQuery query);
-    public IEntityObject findById(Class<? extends EntityObject> c, Object id);
-    public List<IEntityObject> findMany(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters);
-    public List<IEntityObject> findMany(Class<? extends EntityObject> c, NamedQuery query);
-    public List<IEntityObject> findAll(Class<? extends EntityObject> c);
-
-    // fetching operaions
-    public IEntityObject fetchRelations(IEntityObject obj);
-    public List<IEntityObject> fetchRelations(List<IEntityObject> objList);
+    public <T extends EntityObject> T findSingle(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters);
+    public <T extends EntityObject> T findSingle(Class<T> clazz, NamedQuery query);
+    public <T extends EntityObject> T findById(Class<T> clazz, Object id);
+    public <T extends EntityObject> List<T> findMany(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters);
+    public <T extends EntityObject> List<T> findMany(Class<T> clazz, NamedQuery query);
+    public <T extends EntityObject> List<T> findAll(Class<T> clazz);
+    
+    // fetching operations
+    public <T extends IEntityObject> T fetchRelations(T obj);
+    public <T extends IEntityObject> List<T> fetchRelations(List<T> objList);
 
     // check unique
-    public IEntityObject checkUnique(IEntityObject obj);
+    public <T extends IEntityObject> T checkUnique(T obj);
 
     // transactions
     public MethodResult beginTransaction();

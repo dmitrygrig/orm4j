@@ -69,7 +69,7 @@ public class DataContext implements IDataContext {
         // test all mappings
         for (Class<? extends EntityObject> c : queryManager.getRegisteredClasses()) {
             try {
-                List<IEntityObject> obj = this.findAll(c);
+                List<IEntityObject> obj = (List<IEntityObject>)(List<?>)this.findAll(c);
                 if (obj == null) {
                     throw new Exception("Class " + c.getName() + "registered incorrectly.");
                 }
@@ -95,42 +95,44 @@ public class DataContext implements IDataContext {
     }
 
     @Override
-    public IEntityObject findSingle(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters) {
-        return dataProvider.findSingle(c, NamedQueryName, parameters);
+    public <T extends EntityObject> T findSingle(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters) {
+        return (T)dataProvider.findSingle(clazz, NamedQueryName, parameters);
     }
 
     @Override
-    public List<IEntityObject> findMany(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters) {
-        return dataProvider.findMany(c, NamedQueryName, parameters);
+    public <T extends EntityObject> List<T> findMany(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters) {
+        return (List<T>)(List<?>)dataProvider.findMany(clazz, NamedQueryName, parameters);
     }
 
     @Override
-    public IEntityObject findSingle(Class<? extends EntityObject> c, NamedQuery query) {
-        return dataProvider.findSingle(c, query);
+    public <T extends EntityObject> T findSingle(Class<T> clazz, NamedQuery query) {
+        return (T)dataProvider.findSingle(clazz, query);
     }
 
     @Override
-    public List<IEntityObject> findMany(Class<? extends EntityObject> c, NamedQuery query) {
-        return dataProvider.findMany(c, query);
+    public <T extends EntityObject> List<T> findMany(Class<T> clazz, NamedQuery query) {
+        return (List<T>)(List<?>)dataProvider.findMany(clazz, query);
     }
 
     @Override
-    public IEntityObject findById(Class<? extends EntityObject> c, Object id) {
-        return dataProvider.findSingle(c, NamedQuery.NAMED_QUERY_GETBYID,
-                new NamedQueryParameter(AnnotationManager.GetEntityIdFieldName(c), String.valueOf(id)));
+    public <T extends EntityObject> T findById(Class<T> clazz, Object id) {
+        return (T)dataProvider.findSingle(clazz, NamedQuery.NAMED_QUERY_GETBYID,
+                new NamedQueryParameter(AnnotationManager.GetEntityIdFieldName(clazz), String.valueOf(id)));
     }
 
     @Override
-    public List<IEntityObject> findAll(Class<? extends EntityObject> c) {
-        return dataProvider.findMany(c, NamedQuery.NAMED_QUERY_GETALL);
+    public <T extends EntityObject> List<T> findAll(Class<T> clazz) {
+        return (List<T>)(List<?>)dataProvider.findMany(clazz, NamedQuery.NAMED_QUERY_GETALL);
     }
 
     @Override
-    public IEntityObject checkUnique(IEntityObject obj) {
-        return dataProvider.findSingle((Class<? extends EntityObject>) obj.getClass(), NamedQuery.NAMED_QUERY_UNIQUE,
+    public <T extends IEntityObject> T checkUnique(T obj) {
+        return (T)dataProvider.findSingle(
+                (Class<? extends EntityObject>) obj.getClass(), 
+                NamedQuery.NAMED_QUERY_UNIQUE,
                 obj.getNamedQueryParameters(true, true).toArray(new NamedQueryParameter[]{}));
     }
-
+    
     @Override
     public synchronized MethodResult beginTransaction() {
         if (IN_TRANSACTION) {
@@ -186,12 +188,12 @@ public class DataContext implements IDataContext {
     }
 
     @Override
-    public List<IEntityObject> fetchRelations(List<IEntityObject> objList) {
+    public <T extends IEntityObject> List<T> fetchRelations(List<T> objList) {
         for (IEntityObject obj : objList) {
             obj = this.fetchRelations(obj);
         }
 
-        return objList;
+        return (List<T>)(List<?>)objList;
     }
 
     /*
@@ -200,7 +202,7 @@ public class DataContext implements IDataContext {
      * 
      */
     @Override
-    public IEntityObject fetchRelations(IEntityObject obj) {
+    public <T extends IEntityObject> T fetchRelations(T obj) {
         IEntityObject objClone = obj;
 
         try {
@@ -249,7 +251,8 @@ public class DataContext implements IDataContext {
                     //get query to new object
                     NamedQuery fetchQuery = queryManager.getQueryFindRelationByParent(c, relationClass, obj);
                     //create List of Relation Class
-                    List<IEntityObject> relClassList = this.findMany(relationClass, fetchQuery);
+                    List<IEntityObject> relClassList = (List<IEntityObject>)(List<?>)
+                            this.findMany(relationClass, fetchQuery);
                     //create object map
                     Map relObjMap = new HashMap<IEntityObject, IEntityObject>();
                     //loop over all relation Objects and find Mapping
@@ -285,8 +288,14 @@ public class DataContext implements IDataContext {
                     throw new UnsupportedOperationException("Not supported yet.");
                 }
             }
-        } catch (Exception e) {
-            return objClone;
+        } catch (IllegalAccessException e) {
+            return (T)objClone;
+        } catch (IllegalArgumentException e) {
+            return (T)objClone;
+        } catch (UnsupportedOperationException e) {
+            return (T)objClone;
+        } catch (DataProviderFetchingException e) {
+            return (T)objClone;
         }
 
         return obj;
