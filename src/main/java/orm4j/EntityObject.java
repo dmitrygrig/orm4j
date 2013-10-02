@@ -6,6 +6,7 @@ package orm4j;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -160,18 +161,17 @@ public abstract class EntityObject implements IEntityObject {
     }
 
     @Override
-    public void setValueForForeignKeyField(EntityObject mainObj) 
+    public void setValueForForeignKeyField(EntityObject mainObj)
             throws ForeignKeyException {
         // get class of main obj
         Class mainClass = mainObj.getClass();
-        
+
         // get fk Field corresponding to main class
         Field relEntityField = AnnotationManager.getFKFieldForEntity(mainClass, this.getClass());
 
         if (relEntityField == null) {
             throw new ForeignKeyException(mainClass, this.getClass());
         }
-
 
         // set value for corresponding variable
         this.setColumnValue(
@@ -183,20 +183,23 @@ public abstract class EntityObject implements IEntityObject {
 
     @Override
     public void setObject(ResultSet resultSet) throws SQLException {
-        for (Field field :
-                AnnotationManager.getFieldsByAnnotation(
-                this.getClass(),
-                Column.class)) {
-            Column myAnnotation = field.getAnnotation(Column.class);
+        ResultSetMetaData metadata = resultSet.getMetaData();
+        int columnCount = metadata.getColumnCount();
 
-            try {
-                field.set(this, getTypedObject(resultSet.getString(myAnnotation.name()), myAnnotation));
-            } catch (ParseException ex) {
-                Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
+        for (int i = 1; i <= columnCount; i++) {
+            String columnName = metadata.getColumnName(i);
+            Field field = AnnotationManager.getFieldByColumnName(this.getClass(), columnName);
+            if (field != null) {
+                try {
+                    Column myAnnotation = field.getAnnotation(Column.class);
+                    field.set(this, getTypedObject(resultSet.getString(i), myAnnotation));
+                } catch (ParseException ex) {
+                    Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalArgumentException ex) {
+                    Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IllegalAccessException ex) {
+                    Logger.getLogger(EntityObject.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }

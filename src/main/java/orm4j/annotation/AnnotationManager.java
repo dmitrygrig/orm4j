@@ -79,6 +79,19 @@ public class AnnotationManager {
 
         return res;
     }
+    
+    public static Field getFieldByColumnName(Class<?> c, String columnName) {
+
+        for (Field field : Arrays.asList(c.getDeclaredFields())) {
+            if (field.isAnnotationPresent(Column.class)) {
+                String fieldColumnName = field.getAnnotation(Column.class).name();
+                if (fieldColumnName.equalsIgnoreCase(columnName))
+                    return field;
+            }
+        }
+
+        return null;
+    }
 
     public static Field getFKFieldForEntity(Class<?> parentEntity, Class<?> childEntity) {
         for (Field field : getFieldsByAnnotation(childEntity, ForeignKey.class)) {
