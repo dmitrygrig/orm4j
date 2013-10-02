@@ -115,12 +115,12 @@ public class SqliteDataProvider implements IDataProvider {
     @Override
     public MethodResult beginTransaction() {
         this.IN_TRANSACTION = true;
-        return this.ExecuteNonQuery(INamedQuery.NAMED_QUERY_TRANSACTION);
+        return this.ExecuteNamedQuery(INamedQuery.NAMED_QUERY_TRANSACTION);
     }
 
     @Override
     public MethodResult commit() {
-        MethodResult res = this.ExecuteNonQuery(INamedQuery.NAMED_QUERY_COMMIT);
+        MethodResult res = this.ExecuteNamedQuery(INamedQuery.NAMED_QUERY_COMMIT);
         this.IN_TRANSACTION = false;
         this.closeConnection(transactionConnection);
         transactionConnection = null;
@@ -129,7 +129,7 @@ public class SqliteDataProvider implements IDataProvider {
 
     @Override
     public MethodResult rollback() {
-        MethodResult res = this.ExecuteNonQuery(INamedQuery.NAMED_QUERY_ROLLBACK);
+        MethodResult res = this.ExecuteNamedQuery(INamedQuery.NAMED_QUERY_ROLLBACK);
         this.IN_TRANSACTION = false;
         this.closeConnection(transactionConnection);
         transactionConnection = null;
@@ -174,19 +174,56 @@ public class SqliteDataProvider implements IDataProvider {
 
         return res;
     }
+    
+    @Override
+    public MethodResult ExecuteNonQuery(String rawSql) {
+        MethodResult res = new MethodResult();
+        Connection conn = null;
+        try {
+            if ((conn = this.getConnection()) != null) {
+                Statement statement = conn.createStatement();
+                if (DEBUG) {
+                    qlog.log(rawSql);
+                }
+                statement.executeUpdate(rawSql);
+
+                if (rawSql.toLowerCase().contains("insert")) {
+                    res.addValue("id", this.getLastInsertRowId(statement));
+                }
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            res.setException(SQL_EXCEPTION);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            res.setException(ARGUMENT_EXCEPTION);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setException(INTERNAL_EXCEPTION);
+        } finally {
+            MethodResult closeRes = closeConnection(conn);
+            if (!closeRes.isSuccessful()) {
+                res.setException(closeRes.getException());
+            }
+        }
+
+        return res;
+    }
 
     @Override
-    public MethodResult ExecuteNonQuery(String NamedQueryName) {
+    public MethodResult ExecuteNamedQuery(String NamedQueryName) {
         NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(NamedQueryName));
         if (nq != null) {
-            return this.ExecuteNonQuery(nq);
+            return this.ExecuteNamedQuery(nq);
         }
 
         return new MethodResult(ARGUMENT_EXCEPTION);
     }
 
     @Override
-    public MethodResult ExecuteNonQuery(NamedQuery query) {
+    public MethodResult ExecuteNamedQuery(NamedQuery query) {
         MethodResult res = new MethodResult();
         Connection conn = null;
         try {
@@ -283,7 +320,7 @@ public class SqliteDataProvider implements IDataProvider {
         NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(c, NamedQueryName));
         if (nq != null) {
             nq.setParameters(obj.getNamedQueryParameters(true, false));
-            return this.ExecuteNonQuery(nq);
+            return this.ExecuteNamedQuery(nq);
         }
 
         return new MethodResult(ARGUMENT_EXCEPTION);

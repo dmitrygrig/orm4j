@@ -41,8 +41,9 @@ public interface IDataProvider extends Disposable {
     public MethodResult rollback();
     
     // queries
-    public MethodResult ExecuteNonQuery(NamedQuery query);
-    public MethodResult ExecuteNonQuery(String NamedQueryName);
+    public MethodResult ExecuteNamedQuery(NamedQuery query);
+    public MethodResult ExecuteNamedQuery(String NamedQueryName);
+    public MethodResult ExecuteNonQuery(String rawSql);
     public List<IEntityObject> ExecuteQuery(Class<? extends EntityObject> c, NamedQuery query);
     
     // debug

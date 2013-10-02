@@ -69,7 +69,7 @@ public class DataContext implements IDataContext {
         // test all mappings
         for (Class<? extends EntityObject> c : queryManager.getRegisteredClasses()) {
             try {
-                List<IEntityObject> obj = (List<IEntityObject>)(List<?>)this.findAll(c);
+                List<IEntityObject> obj = (List<IEntityObject>) (List<?>) this.findAll(c);
                 if (obj == null) {
                     throw new Exception("Class " + c.getName() + "registered incorrectly.");
                 }
@@ -96,43 +96,48 @@ public class DataContext implements IDataContext {
 
     @Override
     public <T extends EntityObject> T findSingle(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters) {
-        return (T)dataProvider.findSingle(clazz, NamedQueryName, parameters);
+        return (T) dataProvider.findSingle(clazz, NamedQueryName, parameters);
     }
 
     @Override
     public <T extends EntityObject> List<T> findMany(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters) {
-        return (List<T>)(List<?>)dataProvider.findMany(clazz, NamedQueryName, parameters);
+        return (List<T>) (List<?>) dataProvider.findMany(clazz, NamedQueryName, parameters);
     }
 
     @Override
     public <T extends EntityObject> T findSingle(Class<T> clazz, NamedQuery query) {
-        return (T)dataProvider.findSingle(clazz, query);
+        return (T) dataProvider.findSingle(clazz, query);
     }
 
     @Override
     public <T extends EntityObject> List<T> findMany(Class<T> clazz, NamedQuery query) {
-        return (List<T>)(List<?>)dataProvider.findMany(clazz, query);
+        return (List<T>) (List<?>) dataProvider.findMany(clazz, query);
     }
 
     @Override
     public <T extends EntityObject> T findById(Class<T> clazz, Object id) {
-        return (T)dataProvider.findSingle(clazz, NamedQuery.NAMED_QUERY_GETBYID,
+        return (T) dataProvider.findSingle(clazz, NamedQuery.NAMED_QUERY_GETBYID,
                 new NamedQueryParameter(AnnotationManager.GetEntityIdFieldName(clazz), String.valueOf(id)));
     }
 
     @Override
     public <T extends EntityObject> List<T> findAll(Class<T> clazz) {
-        return (List<T>)(List<?>)dataProvider.findMany(clazz, NamedQuery.NAMED_QUERY_GETALL);
+        return (List<T>) (List<?>) dataProvider.findMany(clazz, NamedQuery.NAMED_QUERY_GETALL);
+    }
+
+    @Override
+    public MethodResult executeNonQuery(String query) {
+        return dataProvider.ExecuteNonQuery(query);
     }
 
     @Override
     public <T extends IEntityObject> T checkUnique(T obj) {
-        return (T)dataProvider.findSingle(
-                (Class<? extends EntityObject>) obj.getClass(), 
+        return (T) dataProvider.findSingle(
+                (Class<? extends EntityObject>) obj.getClass(),
                 NamedQuery.NAMED_QUERY_UNIQUE,
                 obj.getNamedQueryParameters(true, true).toArray(new NamedQueryParameter[]{}));
     }
-    
+
     @Override
     public synchronized MethodResult beginTransaction() {
         if (IN_TRANSACTION) {
@@ -193,7 +198,7 @@ public class DataContext implements IDataContext {
             obj = this.fetchRelations(obj);
         }
 
-        return (List<T>)(List<?>)objList;
+        return (List<T>) (List<?>) objList;
     }
 
     /*
@@ -251,8 +256,7 @@ public class DataContext implements IDataContext {
                     //get query to new object
                     NamedQuery fetchQuery = queryManager.getQueryFindRelationByParent(c, relationClass, obj);
                     //create List of Relation Class
-                    List<IEntityObject> relClassList = (List<IEntityObject>)(List<?>)
-                            this.findMany(relationClass, fetchQuery);
+                    List<IEntityObject> relClassList = (List<IEntityObject>) (List<?>) this.findMany(relationClass, fetchQuery);
                     //create object map
                     Map relObjMap = new HashMap<IEntityObject, IEntityObject>();
                     //loop over all relation Objects and find Mapping
@@ -289,13 +293,13 @@ public class DataContext implements IDataContext {
                 }
             }
         } catch (IllegalAccessException e) {
-            return (T)objClone;
+            return (T) objClone;
         } catch (IllegalArgumentException e) {
-            return (T)objClone;
+            return (T) objClone;
         } catch (UnsupportedOperationException e) {
-            return (T)objClone;
+            return (T) objClone;
         } catch (DataProviderFetchingException e) {
-            return (T)objClone;
+            return (T) objClone;
         }
 
         return obj;
@@ -406,7 +410,6 @@ public class DataContext implements IDataContext {
         } else if (DEBUG) {
             System.out.printf("%s is already exists in db\r\n", relObj.toString());
 
-
         }
     }
 
@@ -421,11 +424,11 @@ public class DataContext implements IDataContext {
         if (!obj.getClass().isAnnotationPresent(Entity.class)) {
             throw new DataProviderAddingException(obj.getClass());
         }
-        
+
         boolean generated = true;
         // is id auto generated
         List<Field> idFields = AnnotationManager.getFieldsByAnnotation(obj.getClass(), EntityId.class);
-        if (!idFields.isEmpty()){
+        if (!idFields.isEmpty()) {
             generated = idFields.get(0).isAnnotationPresent(AutoIncremented.class);
         }
 
@@ -455,7 +458,6 @@ public class DataContext implements IDataContext {
 
         return obj;
 
-
     }
 
     /*
@@ -481,7 +483,7 @@ public class DataContext implements IDataContext {
                     // for each object
                     for (EntityObject relObj : relObjList) {
                         relObj.setValueForForeignKeyField((EntityObject) obj);
-                        AddOrUpdateObject(relObj, (EntityObject)obj);
+                        AddOrUpdateObject(relObj, (EntityObject) obj);
                     }
                 }
             }
@@ -494,7 +496,7 @@ public class DataContext implements IDataContext {
                     List<EntityObject> relObjList = (List<EntityObject>) field.get(obj);
                     if (relObjList != null) {
                         for (EntityObject relObj : relObjList) {
-                            relObj = AddOrUpdateObject(relObj, (EntityObject)obj);
+                            relObj = AddOrUpdateObject(relObj, (EntityObject) obj);
 
                             // create relation
                             EntityObject relation = ann.relatedThrough().newInstance();
@@ -508,8 +510,8 @@ public class DataContext implements IDataContext {
                     Map<EntityObject, EntityObject> relObjMap = (Map<EntityObject, EntityObject>) field.get(obj);
                     if (relObjMap != null) {
                         for (Entry<EntityObject, EntityObject> relEntry : (relObjMap).entrySet()) {
-                            EntityObject keyObject = AddOrUpdateObject(relEntry.getKey(), (EntityObject)obj);
-                            EntityObject valueObject = AddOrUpdateObject(relEntry.getValue(), (EntityObject)obj);
+                            EntityObject keyObject = AddOrUpdateObject(relEntry.getKey(), (EntityObject) obj);
+                            EntityObject valueObject = AddOrUpdateObject(relEntry.getValue(), (EntityObject) obj);
 
                             // create relation
                             EntityObject relation = ann.relatedThrough().newInstance();
@@ -552,7 +554,7 @@ public class DataContext implements IDataContext {
         } else { // otherwise, update with child entities
             this.updateEntity(relObj, (NamedQueryParameter[]) null);
         }
-        
+
         return relObj;
     }
 

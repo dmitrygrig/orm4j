@@ -27,6 +27,9 @@ public interface IDataContext extends Disposable {
     public <T extends EntityObject> List<T> findMany(Class<T> clazz, NamedQuery query);
     public <T extends EntityObject> List<T> findAll(Class<T> clazz);
     
+    // raw sql
+    public MethodResult executeNonQuery(String query);
+    
     // fetching operations
     public <T extends IEntityObject> T fetchRelations(T obj);
     public <T extends IEntityObject> List<T> fetchRelations(List<T> objList);
