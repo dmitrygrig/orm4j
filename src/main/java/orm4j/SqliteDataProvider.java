@@ -1,15 +1,20 @@
 package orm4j;
 
 import SQLite.Database;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import orm4j.annotation.AnnotationManager;
+import orm4j.annotation.Column;
 import orm4j.query.ILogger;
 import orm4j.query.INamedQuery;
 import orm4j.query.INamedQueryManager;
@@ -113,6 +118,17 @@ public class SqliteDataProvider implements IDataProvider {
     }
 
     @Override
+    public int findCount(Class<? extends EntityObject> c) {
+        NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(c, NamedQuery.NAMED_QUERY_COUNT));
+        return findCount(nq);
+    }
+
+    @Override
+    public int findCount(NamedQuery query) {
+        return this.ExecuteCountQuery(query);
+    }
+
+    @Override
     public MethodResult beginTransaction() {
         this.IN_TRANSACTION = true;
         return this.ExecuteNamedQuery(INamedQuery.NAMED_QUERY_TRANSACTION);
@@ -134,6 +150,38 @@ public class SqliteDataProvider implements IDataProvider {
         this.closeConnection(transactionConnection);
         transactionConnection = null;
         return res;
+    }
+
+    public int ExecuteCountQuery(NamedQuery query) {
+        Connection conn = null;
+        int result = -1;
+        try {
+            if ((conn = this.getConnection()) != null) {
+                Statement statement = conn.createStatement();
+                String queryString = query.getFinalString();
+                if (DEBUG) {
+                    qlog.log(queryString);
+                }
+                ResultSet rs = statement.executeQuery(queryString);
+
+                while (rs.next()) {
+                    result = Integer.parseInt(rs.getString(1));
+                    break;
+                }
+
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConnection(conn);
+        }
+
+        return result;
     }
 
     @Override
@@ -174,7 +222,7 @@ public class SqliteDataProvider implements IDataProvider {
 
         return res;
     }
-    
+
     @Override
     public MethodResult ExecuteNonQuery(String rawSql) {
         MethodResult res = new MethodResult();
@@ -215,11 +263,7 @@ public class SqliteDataProvider implements IDataProvider {
     @Override
     public MethodResult ExecuteNamedQuery(String NamedQueryName) {
         NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(NamedQueryName));
-        if (nq != null) {
-            return this.ExecuteNamedQuery(nq);
-        }
-
-        return new MethodResult(ARGUMENT_EXCEPTION);
+        return this.ExecuteNamedQuery(nq);
     }
 
     @Override
@@ -297,7 +341,13 @@ public class SqliteDataProvider implements IDataProvider {
             // create Connection
             Class.forName("SQLite.JDBCDriver").newInstance();
             conn = DriverManager.getConnection(String.format("jdbc:sqlite:/%s", getDatabaseURL()));
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return conn;
@@ -318,32 +368,20 @@ public class SqliteDataProvider implements IDataProvider {
 
     private MethodResult executeObject(Class<? extends EntityObject> c, IEntityObject obj, String NamedQueryName) {
         NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(c, NamedQueryName));
-        if (nq != null) {
-            nq.setParameters(obj.getNamedQueryParameters(true, false));
-            return this.ExecuteNamedQuery(nq);
-        }
-
-        return new MethodResult(ARGUMENT_EXCEPTION);
+        nq.setParameters(obj.getNamedQueryParameters(true, false));
+        return this.ExecuteNamedQuery(nq);
     }
 
     private List<IEntityObject> getObjects(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters) {
         NamedQuery nq = new NamedQuery(queryManager.getNamedQuery(c, NamedQueryName));
-        if (nq != null) {
-            if (parameters != null) {
-                nq.setParameters(parameters);
-            }
-            return getObjects(c, nq);
+        if (parameters != null) {
+            nq.setParameters(parameters);
         }
-
-        return null;
+        return getObjects(c, nq);
     }
 
     private List<IEntityObject> getObjects(Class<? extends EntityObject> c, NamedQuery query) {
-        if (query != null) {
-            return this.ExecuteQuery(c, query);
-        }
-
-        return null;
+        return this.ExecuteQuery(c, query);
     }
 
     private int getLastInsertRowId(Statement statement) throws SQLException {
@@ -368,4 +406,5 @@ public class SqliteDataProvider implements IDataProvider {
     public void dispose() {
         this.closeConnection(transactionConnection);
     }
+
 }

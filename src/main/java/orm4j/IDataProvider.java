@@ -35,6 +35,8 @@ public interface IDataProvider extends Disposable {
     public IEntityObject findSingle(Class<? extends EntityObject> c, NamedQuery query);
     public List<IEntityObject> findMany(Class<? extends EntityObject> c, String NamedQueryName, NamedQueryParameter... parameters);
     public List<IEntityObject> findMany(Class<? extends EntityObject> c, NamedQuery query);
+    public int findCount(Class<? extends EntityObject> c);
+    public int findCount(NamedQuery query);
     
     public MethodResult beginTransaction();
     public MethodResult commit();
@@ -45,6 +47,7 @@ public interface IDataProvider extends Disposable {
     public MethodResult ExecuteNamedQuery(String NamedQueryName);
     public MethodResult ExecuteNonQuery(String rawSql);
     public List<IEntityObject> ExecuteQuery(Class<? extends EntityObject> c, NamedQuery query);
+    public int ExecuteCountQuery(NamedQuery query);
     
     // debug
     public void setDebug(boolean debug);

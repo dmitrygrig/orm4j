@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import orm4j.EntityObject;
 import orm4j.IEntityObject;
 import orm4j.annotation.AnnotationManager;
+import orm4j.annotation.AutoIncremented;
 import orm4j.annotation.Column;
 import orm4j.annotation.Entity;
 import orm4j.annotation.ForeignKey;
@@ -54,6 +55,7 @@ public class NamedQueryManager implements INamedQueryManager {
                             getQueryFindAll(c),
                             getQueryFindById(c),
                             getQueryFindByName(c),
+                            getQueryFindCount(c),
                             getQueryInsert(c),
                             getQueryUpdate(c),
                             getQueryDelete(c),
@@ -62,6 +64,7 @@ public class NamedQueryManager implements INamedQueryManager {
                     queries.addAll(Arrays.asList(
                             getQueryFindAll(c),
                             getQueryInsert(c),
+                            getQueryFindCount(c),
                             getQueryDelete(c),
                             getQueryUnique(c)));
                 }
@@ -132,6 +135,13 @@ public class NamedQueryManager implements INamedQueryManager {
 
         return new NamedQuery(getQueryName(c, INamedQuery.NAMED_QUERY_GETBYNAME),
                 String.format("SELECT * FROM %s WHERE %s = ':%s'", tableName, fieldIdName, fieldIdName));
+    }
+    
+    private NamedQuery getQueryFindCount(Class<? extends EntityObject> c){
+        String tableName = getTableName(c);
+
+        return new NamedQuery(getQueryName(c, INamedQuery.NAMED_QUERY_COUNT),
+                String.format("SELECT count(*) FROM %s", tableName));
     }
 
     private NamedQuery getQueryFindAll(Class<? extends EntityObject> c) {
@@ -317,6 +327,10 @@ public class NamedQueryManager implements INamedQueryManager {
                 } catch (UniqueException ex) {
                     Logger.getLogger(NamedQueryManager.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }
+            // AI should be avoided
+            if (field.isAnnotationPresent(AutoIncremented.class)){
+                continue;
             }
             String column = field.getAnnotation(Column.class).name();
             String parameter = columnsWithParameters.get(column);

@@ -26,9 +26,13 @@ public interface IDataContext extends Disposable {
     public <T extends EntityObject> List<T> findMany(Class<T> clazz, String NamedQueryName, NamedQueryParameter... parameters);
     public <T extends EntityObject> List<T> findMany(Class<T> clazz, NamedQuery query);
     public <T extends EntityObject> List<T> findAll(Class<T> clazz);
+    public <T extends EntityObject> int findCount(Class<T> clazz);
     
     // raw sql
-    public MethodResult executeNonQuery(String query);
+    public MethodResult executeNonQuery(String sql);
+    
+    // get count
+  public int findCount(NamedQuery query);
     
     // fetching operations
     public <T extends IEntityObject> T fetchRelations(T obj);

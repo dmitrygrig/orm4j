@@ -15,6 +15,7 @@ public interface INamedQuery {
     public static final String NAMED_QUERY_GETALL = "findAll";
     public static final String NAMED_QUERY_GETBYID = "findById";
     public static final String NAMED_QUERY_GETBYNAME = "findByName";
+    public static final String NAMED_QUERY_COUNT = "findCount";
     public static final String NAMED_QUERY_UNIQUE = "unique";
     public static final String NAMED_QUERY_TRANSACTION = "transaction";
     public static final String NAMED_QUERY_COMMIT = "commit";

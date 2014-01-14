@@ -35,16 +35,16 @@ public abstract class EntityObject implements IEntityObject {
     private Object getTypedObject(Object obj, Column col) throws ParseException {
         switch (col.type()) {
             case DATE:
-                return obj.toString().equals("") ? new Date()
+                return obj == null ? null : obj.toString().equals("") ? new Date()
                         : col.dateFormat().isEmpty()
                         ? GlobalController.getDatetimeFormatter().parseObject(obj.toString())
                         : GlobalController.getDatetimeFormatter(col.dateFormat()).parseObject(obj.toString());
             case DOUBLE:
-                return obj.toString().equals("") ? Double.MIN_VALUE : Double.parseDouble(obj.toString());
+                return obj == null ? null : obj.toString().equals("") ? Double.MIN_VALUE : Double.parseDouble(obj.toString());
             case INTEGER:
-                return obj.toString().equals("") ? Integer.MIN_VALUE : Integer.parseInt(obj.toString());
+                return obj == null ? null : obj.toString().equals("") ? Integer.MIN_VALUE : Integer.parseInt(obj.toString());
             default:
-                return obj.toString();
+                return obj == null ? null : obj.toString();
         }
     }
 

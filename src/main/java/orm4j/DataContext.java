@@ -125,6 +125,15 @@ public class DataContext implements IDataContext {
         return (List<T>) (List<?>) dataProvider.findMany(clazz, NamedQuery.NAMED_QUERY_GETALL);
     }
 
+    public <T extends EntityObject> int findCount(Class<T> clazz) {
+        return dataProvider.findCount(clazz);
+    }
+
+    @Override
+    public int findCount(NamedQuery query) {
+        return dataProvider.findCount(query);
+    }
+
     @Override
     public MethodResult executeNonQuery(String query) {
         return dataProvider.ExecuteNonQuery(query);
@@ -572,5 +581,6 @@ public class DataContext implements IDataContext {
     public void saveLog(String filename) {
         dataProvider.getLogger().flush(filename);
         dataProvider.getLogger().clearLog();
+
     }
 }

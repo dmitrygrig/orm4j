@@ -18,6 +18,11 @@ public class NamedQuery implements INamedQuery {
     private String sqlString;
     private List<NamedQueryParameter> parameters = new ArrayList<NamedQueryParameter>();
     
+    public NamedQuery(String sqlString) {
+        this.name = "";
+        this.sqlString = sqlString;
+    }
+    
     public NamedQuery(String name, String sqlString) {
         this.name = name;
         this.sqlString = sqlString;
