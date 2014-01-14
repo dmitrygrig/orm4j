@@ -4,7 +4,7 @@
 
     <groupId>orm4j</groupId>
     <artifactId>orm4j</artifactId>
-    <version>0.2.6</version>
+    <version>0.2.7</version>
     <packaging>jar</packaging>
 
     <name>orm4j</name>
